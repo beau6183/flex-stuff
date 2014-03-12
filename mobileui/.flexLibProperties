@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<flexLibProperties includeAllClasses="false" useMultiPlatformConfig="true" version="3">
+  <includeClasses/>
+  <includeResources>
+    <resourceEntry destPath="assets/disclose.png" sourcePath="assets/disclose.png"/>
+    <resourceEntry destPath="defaults.css" sourcePath="defaults.css"/>
+  </includeResources>
+  <namespaceManifests>
+    <namespaceManifestEntry manifest="manifest.xml" namespace="http://www.beauscott.com/2014/mxml/mobileui"/>
+  </namespaceManifests>
+</flexLibProperties>

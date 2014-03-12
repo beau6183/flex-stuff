@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<componentPackage>
+  <component id="beauscott" class="com.beauscott.flex.beauscott" />
+  <component id="ClassMap" class="com.beauscott.flex.autowire.ClassMap" />
+  <component id="ClassMapping" class="com.beauscott.flex.autowire.ClassMapping" />
+  <component id="PropertyMapping" class="com.beauscott.flex.autowire.PropertyMapping" />
+  <component id="Countries" class="com.beauscott.flex.localization.Countries" />
+  <component id="Country" class="com.beauscott.flex.localization.Country" />
+  <component id="Currency" class="com.beauscott.flex.localization.Currency" />
+  <component id="ExtendedCurrencyFormatter" class="com.beauscott.flex.localization.ExtendedCurrencyFormatter" />
+  <component id="Notification" class="com.beauscott.flex.notifications.Notification" />
+  <component id="NotificationCenter" class="com.beauscott.flex.notifications.NotificationCenter" />
+  <component id="Compare" class="com.beauscott.flex.util.Compare" />
+  <component id="DataUtils" class="com.beauscott.flex.util.DataUtils" />
+  <component id="TimingUtil" class="com.beauscott.flex.util.TimingUtil" />
+  <component id="StringUtil" class="com.beauscott.flex.util.StringUtil" />
+  <component id="Test" class="com.beauscott.flex.util.Test" />
+</componentPackage>

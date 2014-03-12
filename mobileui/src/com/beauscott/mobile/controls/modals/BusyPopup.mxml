@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnablePopUpContainer xmlns:fx="http://ns.adobe.com/mxml/2009" backgroundAlpha="0"
+						   xmlns:s="library://ns.adobe.com/flex/spark" width="{dpiScale * 200}" height="{dpiScale * 200}">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+            import com.beauscott.flex.beauscott;
+            
+            import flash.utils.clearTimeout;
+            import flash.utils.setTimeout;
+            
+            import mx.core.DPIClassification;
+            import mx.core.FlexGlobals;
+            import mx.managers.PopUpManager;
+            
+            private function get dpiScale():Number {
+                return FlexGlobals.topLevelApplication.applicationDPI / DPIClassification.DPI_160;
+            }
+			
+            [ArrayElementType("String")]
+            internal var messages:Array = [];
+            
+			[Bindable]
+			public var message:String;
+            
+            /**
+             * Minimum time (in ms) that the window should remain open
+             */
+            public static var minimumDisplayTime:int = 500;
+            
+            private static var openedAt:int = 0;
+            private static function get displayedTime():int {
+                return openedAt == 0 ? openedAt : ((new Date()).time - openedAt);
+            }
+            private static var openTimeout:int = -1;
+            
+            /**
+             * Minimum time to wait before displaying
+             */ 
+            public static var minimumTimeBeforeDisplay:int = 0;
+			
+			private static var instance:BusyPopup;
+			private static var refcount:int = 0;
+            
+            override protected function childrenCreated():void {
+                super.childrenCreated();
+                addEventListener(Event.ADDED_TO_STAGE, addedToStageHandler);
+            }
+            
+            private function addedToStageHandler(event:Event):void {
+                addEventListener(Event.REMOVED_FROM_STAGE, removedFromStageHandler);
+                stage.addEventListener(StageOrientationEvent.ORIENTATION_CHANGE, orientationChangeHandler);
+            }
+            
+            private function removedFromStageHandler(event:Event):void {
+                removeEventListener(Event.REMOVED_FROM_STAGE, removedFromStageHandler);
+                stage.removeEventListener(StageOrientationEvent.ORIENTATION_CHANGE, orientationChangeHandler);
+            }
+            
+            private function orientationChangeHandler(event:StageOrientationEvent):void {
+                updatePopUpPosition();
+            }
+			
+			public static function show(message:String):void {
+				refcount++;
+				if (instance == null) {
+					instance = new BusyPopup();
+				}
+                instance.messages.push(message);
+				instance.message = message;
+				if (!instance.isOpen && minimumTimeBeforeDisplay == 0) {
+                    _open();
+				}
+				instance.setFocus();
+			}
+            
+            private static function _open():void {
+                if (!instance.isOpen) {
+                    if (openedAt == 0) {
+                        openedAt = new Date().time;
+                    }
+                    var dt:int = displayedTime;
+                    if (minimumTimeBeforeDisplay <= dt) {
+                        if (openTimeout != -1) {
+                            clearTimeout(openTimeout);
+                            openTimeout = -1;
+                        }
+//                        trace ("BusyPopUp showing now");
+                        instance.open(FlexGlobals.topLevelApplication as DisplayObjectContainer, true);
+                    }
+                    else if(openTimeout == -1) {
+//                        trace ("BusyPopUp delayed showing", minimumTimeBeforeDisplay - dt);
+                        openTimeout = setTimeout(_open, minimumTimeBeforeDisplay - dt);
+                    }
+                }
+            }
+            
+            override public function updatePopUpPosition():void {
+                validateNow();
+                PopUpManager.centerPopUp(this);
+                PopUpManager.bringToFront(this);
+            }
+			
+			public static function hide():void {
+				if (instance != null && instance.isOpen) {
+                    var dt:int = displayedTime;
+                    if (dt > minimumDisplayTime) {
+                        if (refcount > 0) {
+                            refcount--;
+                        }
+    					if (refcount <= 0) {
+//                            trace ("BusyPopUp hiding now");
+    						refcount = 0;
+                            if (instance.stage.focus && instance.contains(instance.stage.focus))
+    						    instance.stage.focus = null;
+    						instance.close(false);
+                            openedAt = 0;
+    					}
+                    }
+                    else {
+//                        trace ("BusyPopUp delayed hiding", minimumDisplayTime - dt);
+                        setTimeout(hide, minimumDisplayTime - dt);
+                    }
+				}
+			}
+			
+			
+		]]>
+	</fx:Script>
+	<s:Rect left="0" right="0" top="0" bottom="0" radiusX="{10 * dpiScale}" radiusY="{10 * dpiScale}">
+		<s:fill>
+			<s:SolidColor color="#000000" alpha=".8" />
+		</s:fill>
+	</s:Rect>
+	<s:BusyIndicator horizontalCenter="0" verticalCenter="{-20 * dpiScale}" symbolColor="#FFFFFF" id="ind" />
+	<s:Label text="{message}" color="#FFFFFF" fontWeight="bold" 
+			 left="10" right="10" bottom="10" top="{ind.y + ind.height + (dpiScale * 20)}"
+			 textAlign="center" verticalAlign="top" />
+</s:SkinnablePopUpContainer>

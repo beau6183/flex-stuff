@@ -1,0 +1,506 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Callout xmlns:fx="http://ns.adobe.com/mxml/2009"
+           xmlns:s="library://ns.adobe.com/flex/spark"
+           minWidth="300"
+           resizeForSoftKeyboard="false"
+           currentState="{getStateName('normal')}"
+           >
+    <fx:Metadata>
+        [Style(name="buttonSkin", inherit="no", type="Class", format="Class")]
+        [Style(name="defaultWidth", inherit="no", type="Number", format="Number")]
+        [Style(name="defaultHeight", inherit="no", type="Number", format="Number")]
+    </fx:Metadata>
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+    </fx:Declarations>
+    <fx:Script>
+        <![CDATA[
+            import mx.collections.ArrayCollection;
+            import mx.core.FlexGlobals;
+            import mx.core.UIComponent;
+            import mx.core.mx_internal;
+            import mx.events.SandboxMouseEvent;
+            import mx.utils.StringUtil;
+            
+            import spark.components.Label;
+
+            use namespace mx_internal;
+            
+            // Hack
+            override protected function childrenCreated():void {
+                super.childrenCreated();
+                if (!showFromParent) {
+                    setArrowDirection(null);
+                }
+            }
+            
+            [SkinPart(required="false")]
+            public var titleDisplay:Label;
+            
+            private var _title:String = "";
+
+            [Bindable(event="titleChanged")]
+            public function get title():String
+            {
+                return _title;
+            }
+            /**
+             * @private
+             */
+            public function set title(value:String):void
+            {
+                value = StringUtil.trim(value);
+                if( _title !== value)
+                {
+                    _title = value;
+                    if (titleDisplay) {
+                        titleDisplay.text = value;
+                    }
+                    else {
+                        invalidateProperties();
+                    }
+                    dispatchEvent(new Event("titleChanged"));
+                    invalidateSkinState();
+                    invalidateDisplayList();
+                    invalidateSize();
+//                    if (isOpen) {
+//                        validateNow();
+//                        updatePopUpPosition();
+//                    }
+                }
+            }
+            
+            public function getStateName(baseName:String):String {
+                if (baseName.indexOf("Tablet") > -1 && !isTablet) {
+                    return baseName.replace("Tablet", "");
+                }
+                else if (isTablet && baseName.indexOf("Tablet") == -1) {
+                    return baseName + "Tablet";
+                }
+                else {
+                    return baseName;
+                }
+            }
+            
+            internal function get isTablet():Boolean {
+                return FlexGlobals.topLevelApplication.isTablet;
+            }
+
+            [Bindable("dataChange")]
+            public var data:Object;
+
+            /**
+             * Ensures only one actionsheet can be visible at a time
+             */
+            internal static var activeActionSheet:ActionSheet;
+
+            /**
+             * Safeguard flag to prevent multiple PopUpEvents from firing
+             * in the event that an actionsheet was displayed as a result of
+             * a button click
+             */
+            private var isClosing:Boolean = false;
+
+            private function updateState():void {
+                if (destructiveButtonIndex > -1) {
+                    if (cancelButtonIndex > -1) {
+                        currentState = getStateName("hasCancelAndDestructiveButtons");
+                    }
+                    else {
+                        currentState = getStateName("hasDestructiveButton");
+                    }
+                }
+                else if (cancelButtonIndex > -1) {
+                    currentState = getStateName("hasCancelButton");
+                }
+                else {
+                    currentState = getStateName("normal");
+                }
+            }
+
+            private var _destructiveButtonIndex:int = -1;
+
+            [Bindable(event="destructiveButtonIndexChanged")]
+            public function get destructiveButtonIndex():int
+            {
+                return _destructiveButtonIndex;
+            }
+
+            public function set destructiveButtonIndex(value:int):void
+            {
+                if( _destructiveButtonIndex !== value)
+                {
+                    _destructiveButtonIndex = value;
+                    dispatchEvent(new Event("destructiveButtonIndexChanged"));
+                    invalidateDisplayList();
+                    invalidateSkinState();
+                    invalidateSize();
+                }
+                updateState();
+            }
+
+
+            private var _cancelButtonIndex:int = -1;
+
+            [Bindable(event="cancelButtonIndexChanged")]
+            public function get cancelButtonIndex():int
+            {
+                return _cancelButtonIndex;
+            }
+
+            public function set cancelButtonIndex(value:int):void
+            {
+                if( _cancelButtonIndex !== value)
+                {
+                    _cancelButtonIndex = value;
+                    dispatchEvent(new Event("cancelButtonIndexChanged"));
+                    invalidateDisplayList();
+                    invalidateSkinState();
+                    invalidateSize();
+                }
+                updateState();
+            }
+
+            /**
+             * Flag indicating that the popup should close if the system manager receives a mouse
+             * down event outside of the popups bounds. Default = true.
+             * Note: If cancelButtonIndex is specified ( > -1), the cancel button's
+             * call back will be invoked regardless of this property when a mouse event occurs outside of
+             * this popup's bounds.
+             */
+            public var closeOnMouseOutside:Boolean = true;
+
+
+            [Bindable("listDataChanged")]
+            public var listData:ArrayCollection = new ArrayCollection();
+
+            private var _showFromParent:Boolean = false;
+
+            public function get showFromParent():Boolean
+            {
+                return false;
+            }
+
+            public function set showFromParent(value:Boolean):void
+            {
+//                _showFromParent = value;
+//                invalidateSkinState();
+            }
+
+
+            private var mouseIsDown:Boolean = false;
+
+            override public function updatePopUpPosition():void
+            {
+                invalidateSkinState();
+                if (!owner || !systemManager)
+                    return;
+                
+                if (showFromParent) {
+                    super.updatePopUpPosition();
+                    return;
+                }
+                
+//                height = NaN;
+//                validateNow();
+                var vmm:Point = new Point(getLayoutBoundsWidth(), getLayoutBoundsHeight());
+                var s:Point = new Point(systemManager.stage.stageWidth, systemManager.stage.stageHeight);
+                
+                if (isTablet) {
+                    maxHeight = s.y;
+                    var w:Number = Math.min(s.x, s.y) * 0.8; 
+                    width = w;
+                    validateNow();
+                    setLayoutBoundsPosition((s.x - w) / 2, (s.y - getLayoutBoundsHeight()) / 2, false);
+                }
+                else {
+                    var h:Number = Math.min(getExplicitOrMeasuredHeight(), s.y);
+//                    trace("ASH", getExplicitOrMeasuredHeight(), s.y, Math.min(getExplicitOrMeasuredHeight(), s.y));
+                    width = s.x;
+                    maxHeight = h;
+//                    setLayoutBoundsSize(s.x, h);
+                    validateNow();
+                    setLayoutBoundsPosition(0, s.y - getLayoutBoundsHeight());
+                }
+            }
+
+            public function addButtonWithCallback(label:String, callback:Function, data:Object = null):int {
+                var itm:ActionSheetItem = new ActionSheetItem();
+                itm.label = label;
+                itm.callback = callback;
+                itm.data = data;
+                listData.addItem(itm);
+                invalidateSize();
+                return listData.length - 1;
+            }
+
+            [Bindable("destructiveButtonIndexChanged")]
+            [Bindable("cancelButtonIndexChanged")]
+            [Bindable("listDataChanged")]
+            public function get numButtons():uint {
+                var n:uint = 0;
+                if (destructiveButtonIndex > -1 && destructiveButtonIndex >= listData.length) {
+                    n++;
+                }
+                if (cancelButtonIndex > -1 && cancelButtonIndex >= listData.length) {
+                    n++;
+                }
+                n += listData.length;
+                return n;
+            }
+
+            [Bindable("destructiveButtonIndexChanged")]
+            [Bindable("cancelButtonIndexChanged")]
+            [Bindable("listDataChanged")]
+            public function get regularButtons():ArrayCollection {
+                var src:Array = listData ? listData.source.slice() : [];
+                src = src.filter(function(item:*, index:int, array:Array):Boolean {
+                    return index != this.destructiveButtonIndex && index != this.cancelButtonIndex;
+                }, this);
+                return new ArrayCollection(src);
+            }
+
+            [Bindable("destructiveButtonIndexChanged")]
+            [Bindable("listDataChanged")]
+            public function get destructiveButtonLabel():String {
+                if (destructiveButtonIndex != -1) {
+                    var btn:ActionSheetItem = listData && destructiveButtonIndex < listData.length ?
+                                                listData.getItemAt(destructiveButtonIndex) as ActionSheetItem :
+                                            null;
+                    if (btn && btn.label != null) {
+                        return btn.label;
+                    }
+                }
+                return null;
+            }
+
+            [Bindable("cancelButtonIndexChanged")]
+            [Bindable("listDataChanged")]
+            public function get cancelButtonLabel():String {
+                if (cancelButtonIndex != -1) {
+                    var btn:ActionSheetItem = listData && cancelButtonIndex < listData.length ?
+                                                listData.getItemAt(cancelButtonIndex) as ActionSheetItem :
+                                                null;
+                    if (btn && btn.label != null) {
+                        return btn.label;
+                    }
+                }
+                return "Cancel";
+            }
+
+            private function destructiveButtonCallback():void {
+                if (isClosing) return;
+                var shouldClose:Boolean = true;
+                var btn:ActionSheetItem = null;
+                isClosing = true;
+                if (destructiveButtonIndex != -1) {
+                    btn = listData && destructiveButtonIndex < listData.length ?
+                                                listData.getItemAt(destructiveButtonIndex) as ActionSheetItem :
+                                                null;
+                    if (btn && btn.callback != null) {
+                        var result:* = undefined;
+                        if (btn.callback.length) {
+                            result = btn.callback(btn.data);
+                        }
+                        else {
+                            result = btn.callback();
+                        }
+                        if (result !== undefined && result is Boolean) {
+                            shouldClose = result;
+                        }
+                    }
+                }
+                if (shouldClose)
+                    close(btn != null, btn);
+                else
+                    isClosing = false;
+            }
+
+            private function cancelButtonCallback():void {
+                if (isClosing) return;
+                var shouldClose:Boolean = true;
+                var btn:ActionSheetItem = null;
+                isClosing = true;
+                if (cancelButtonIndex != -1) {
+                    btn = listData && cancelButtonIndex < listData.length ?
+                                                listData.getItemAt(cancelButtonIndex) as ActionSheetItem :
+                                                null;
+                    if (btn && btn.callback != null) {
+                        var result:* = undefined;
+                        if (btn.callback.length) {
+                            result = btn.callback(btn.data);
+                        }
+                        else {
+                            result = btn.callback();
+                        }
+                        if (result !== undefined && result is Boolean) {
+                            shouldClose = result;
+                        }
+                    }
+                }
+                if (shouldClose)
+                    close(btn != null, btn);
+                else
+                    isClosing = false;
+            }
+
+            override public function open(owner:DisplayObjectContainer, modal:Boolean=true):void {
+                if (isOpen)
+                    return;
+                if (activeActionSheet != null && activeActionSheet.isOpen) {
+                    activeActionSheet.internalClose();
+                    activeActionSheet = null;
+                }
+
+                if (activeActionSheet == null) {
+                    super.open(owner, modal);
+                    activeActionSheet = this;
+                    systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_DOWN, systemManager_mouseDownHandler, false, 0, true);
+                    systemManager.getSandboxRoot().addEventListener(SandboxMouseEvent.MOUSE_DOWN_SOMEWHERE, systemManager_mouseDownHandler, false, 0, true);
+                    systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_UP, systemManager_mouseUpHandler_noRollOverOpenDelay, false, 0, true);
+                }
+                else {
+//                    trace ('Existing ActionSheet open and unable to close');
+                }
+            }
+
+            internal function internalClose():void {
+                cancelButtonCallback();
+            }
+
+            override public function close(commit:Boolean=false, data:*=null):void {
+                super.close(commit, data);
+                if (activeActionSheet == this) {
+                    activeActionSheet = null;
+                }
+                systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_DOWN, systemManager_mouseDownHandler);
+                systemManager.getSandboxRoot().removeEventListener(SandboxMouseEvent.MOUSE_DOWN_SOMEWHERE, systemManager_mouseDownHandler);
+                systemManager.getSandboxRoot().removeEventListener(MouseEvent.MOUSE_UP, systemManager_mouseUpHandler_noRollOverOpenDelay);
+            }
+
+            /**
+             *  @private
+             *  Called when the systemManager receives a mouseDown event. This closes
+             *  the dropDown if the target is outside of the dropDown.
+             */
+            private function systemManager_mouseDownHandler(event:Event):void
+            {
+                // stop here if mouse was down from being down on the open button
+                if (mouseIsDown)
+                {
+                    mouseIsDown = false;
+                    return;
+                }
+
+                if (!(event.target == this || this.contains(DisplayObject(event.target))))
+                {
+                    if (cancelButtonIndex > -1 || closeOnMouseOutside)
+                        cancelButtonCallback();
+                }
+            }
+
+            private function systemManager_mouseUpHandler_noRollOverOpenDelay(event:Event):void
+            {
+                // stop here if mouse was down from being down on the open button
+                if (mouseIsDown)
+                {
+                    mouseIsDown = false;
+                    return;
+                }
+            }
+
+            internal function regularButtonCallback(btn:Object):void {
+                if (isClosing) return;
+                isClosing = true;
+                var shouldClose:Boolean = true;
+                if (btn && btn.callback != null) {
+                    var result:* = undefined;
+                    if (btn.callback.length) {
+                        result = btn.callback(btn.data);
+                    }
+                    else {
+                        result = btn.callback();
+                    }
+                    if (result !== undefined && result is Boolean) {
+                        shouldClose = result;
+                    }
+                }
+                if (shouldClose)
+                    close(btn != null, btn);
+                else
+                    isClosing = false;
+            }
+            
+//            override protected function commitProperties():void {
+//                super.commitProperties();
+//                if (titleChanged) {
+//                    titleChanged = false;
+//                    if (titleDisplay) {
+//                        titleDisplay.text = title;
+//                    }
+//                }
+//            }
+            
+            override protected function partAdded(partName:String, instance:Object):void {
+                super.partAdded(partName, instance);
+                if (instance == titleDisplay) {
+                    titleDisplay.text = title;
+                }
+            }
+
+        ]]>
+    </fx:Script>
+    <s:states>
+        <!-- Phone states -->
+        <s:State name="normal" />
+        <s:State name="hasCancelButton" stateGroups="showingCancelButton"/>
+        <s:State name="hasDestructiveButton" stateGroups="showingDestructiveButton" />
+        <s:State name="hasCancelAndDestructiveButtons" stateGroups="showingDestructiveButton, showingCancelButton" />
+        
+        <!-- Tablet States -->
+        <s:State name="normalTablet" stateGroups="tablet" />
+        <s:State name="hasCancelButtonTablet" stateGroups="showingCancelButton, tablet"/>
+        <s:State name="hasDestructiveButtonTablet" stateGroups="showingDestructiveButton, tablet" />
+        <s:State name="hasCancelAndDestructiveButtonsTablet" stateGroups="showingDestructiveButton, showingCancelButton, tablet" />
+    </s:states>
+    
+    <s:layout>
+        <s:VerticalLayout gap="0" horizontalAlign="justify"/>
+    </s:layout>
+    
+    <s:Button id="destructiveButton"
+              label="{destructiveButtonLabel}"
+              click="destructiveButtonCallback()"
+              includeIn="showingDestructiveButton"
+              />
+
+    <s:List id="buttonScroller"
+            borderVisible="false"
+            horizontalScrollPolicy="off"
+            verticalScrollPolicy="auto"
+            scrollSnappingMode="none"
+            height="100%"
+            dataProvider="{regularButtons}">
+        <s:layout>
+            <s:VerticalLayout gap="0" variableRowHeight="false" horizontalAlign="justify"/>
+        </s:layout>
+        <s:typicalItem>
+            <s:ItemRenderer width="100%" height="100%" contentBackgroundAlpha="0.0" autoDrawBackground="false">
+                <s:Button label="TypicalItem" width="100%"/>
+            </s:ItemRenderer>
+        </s:typicalItem>
+        <s:itemRenderer>
+            <fx:Component>
+                <s:ItemRenderer width="100%" height="100%" contentBackgroundAlpha="0.0" autoDrawBackground="false">
+                    <s:Button label="{data.label}" click="outerDocument.regularButtonCallback(data)"
+                              width="100%"/>
+                </s:ItemRenderer>
+            </fx:Component>
+        </s:itemRenderer>
+    </s:List>
+
+    <s:Button id="cancelButton"
+              includeIn="showingCancelButton"
+              label="{cancelButtonLabel}"
+              click="cancelButtonCallback()" />
+</s:Callout>

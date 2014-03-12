@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modals:ModalContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+                       xmlns:modals="com.beauscott.mobile.controls.modals.*"
+                       xmlns:s="library://ns.adobe.com/flex/spark"
+                       xmlns:layouts="com.beauscott.mobile.layouts.*"
+                       >
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+    </fx:Declarations>
+    <fx:Script>
+        <![CDATA[
+            import com.beauscott.mobile.controls.modals.alertClasses.AlertButtonDescriptor;
+
+            import flash.utils.getQualifiedClassName;
+
+            import mx.collections.ArrayCollection;
+            import mx.core.FlexGlobals;
+            import mx.core.IVisualElement;
+            import mx.core.IVisualElementContainer;
+            import mx.core.UIComponent;
+            import mx.managers.IFocusManagerComponent;
+
+            import spark.components.VGroup;
+            import spark.core.IDisplayText;
+            import spark.events.IndexChangeEvent;
+            import spark.events.PopUpEvent;
+
+            public static const NONE:uint = 0;
+            public static const OK:uint = 1;
+            public static const CANCEL:uint = 2;
+            public static const YES:uint = 4;
+            public static const NO:uint = 8;
+
+            private var _buttonFlags:uint = AlertView.OK;
+
+            [Bindable(event="buttonsChanged")]
+            public function get buttonFlags():uint
+            {
+                return _buttonFlags;
+            }
+
+            public function set buttonFlags(value:uint):void
+            {
+                if( _buttonFlags !== value)
+                {
+                    _buttonFlags = value;
+                    dispatchEvent(new Event("buttonsChanged"));
+                }
+            }
+
+
+            private var _message:String;
+
+            [Bindable(event="messageChanged")]
+            public function get message():String
+            {
+                return _message;
+            }
+
+            public function set message(value:String):void
+            {
+                if( _message !== value)
+                {
+                    _message = value;
+                    dispatchEvent(new Event("messageChanged"));
+                    invalidateSize();
+                    invalidateDisplayList();
+                }
+            }
+
+
+            [ArrayElementType("com.beauscott.mobile.controls.modals.alertClasses.AlertButtonDescriptor")]
+            private var _customButtons:Array = [];
+
+            [ArrayElementType("com.beauscott.mobile.controls.modals.alertClasses.AlertButtonDescriptor")]
+            [Bindable("buttonsChanged")]
+            public function get allButtons():ArrayCollection {
+                var out:ArrayCollection = new ArrayCollection(_customButtons.slice());
+                var flagsAdded:uint = 0;
+                for (var i:uint = 0; i < _customButtons.length; i++) {
+                    flagsAdded += _customButtons[i].flag;
+                }
+                if (!(flagsAdded & AlertView.CANCEL) && (buttonFlags & AlertView.CANCEL)) {
+                    out.addItem(new AlertButtonDescriptor("Cancel", AlertView.CANCEL));
+                }
+                if (!(flagsAdded & AlertView.NO) && (buttonFlags & AlertView.NO)) {
+                    out.addItem(new AlertButtonDescriptor("No", AlertView.NO));
+                }
+                if (!(flagsAdded & AlertView.OK) && (buttonFlags & AlertView.OK)) {
+                    out.addItem(new AlertButtonDescriptor("Ok", AlertView.OK));
+                }
+                if (!(flagsAdded & AlertView.YES) && (buttonFlags & AlertView.YES)) {
+                    out.addItem(new AlertButtonDescriptor("Yes", AlertView.YES));
+                }
+                return out;
+            }
+
+            [Bindable("buttonsChanged")]
+            public function get numButtons():uint {
+                return allButtons.length;
+            }
+
+            public static function show(parent:DisplayObjectContainer, message:String, title:String, buttonFlags:uint = AlertView.OK, closeHandler:Function = null, ... formElements):AlertView {
+                var alert:AlertView = new AlertView();
+                alert.buttonFlags = buttonFlags;
+                if (closeHandler != null) {
+                    alert.addEventListener(PopUpEvent.CLOSE, closeHandler, false, 0, true);
+                }
+                alert.title = title;
+                alert.message = message;
+
+                alert.focusEnabled = true;
+                alert.hasFocusableChildren = true;
+                alert.maxHeight = FlexGlobals.topLevelApplication.systemManager.stage.stageHeight * 0.8;
+                alert.maxWidth = FlexGlobals.topLevelApplication.systemManager.stage.stageWidth * 0.8;
+                //            alert.width = bounds.width * 0.8;
+                //            alert.height = 300;
+                if (formElements) {
+                    for (var i:int = 0; i < formElements.length; i++) {
+                        var element:IVisualElement = formElements[i] as IVisualElement;
+                        if (element) {
+                            alert.addFormElement(element);
+                        }
+                    }
+                }
+
+                alert.open(parent, true);
+                alert.setFocus();
+                return alert;
+            }
+
+            private function initFocus():void {
+                setFocus();
+            }
+
+            override public function setFocus():void {
+                const findAndSetFocus:Function = function(element:IVisualElement):Boolean {
+//                    trace ("AlertView: trying component", getQualifiedClassName(element));
+                    if (element is IVisualElementContainer) {
+                        var c:IVisualElementContainer = IVisualElementContainer(element);
+//                        trace ("AlertView: checking", c.numElements, "children in", getQualifiedClassName(element));
+                        for (var i:int = 0; i < c.numElements; i++) {
+//                            trace ("AlertView: walking into child container", getQualifiedClassName(element));
+                            if (findAndSetFocus(c.getElementAt(i))) return true;
+                        }
+                    }
+                    else if (element is IFocusManagerComponent && element != messageDisplay) {
+                        if (IFocusManagerComponent(element).focusEnabled) {
+                            IFocusManagerComponent(element).setFocus();
+//                            trace ("AlertView: setting focus to ", getQualifiedClassName(element));
+                            return true;
+                        }
+                        else {
+//                            trace ("AlertView: Not a focusable element", getQualifiedClassName(element));
+                        }
+                    }
+                    return false;
+                };
+                if (!findAndSetFocus(contentGroup ? contentGroup : this)) {
+//                    trace ("AlertView: could not find a focusable object, defaulting");
+                    super.setFocus();
+                }
+            }
+
+            public function addButton(label:String, flag:uint = 0x0128, styleName:Object = null):AlertView {
+                var b:AlertButtonDescriptor = null;
+                for each(b in _customButtons) {
+                    if (b.label == label) {
+                        b.flag = flag;
+                        dispatchEvent(new Event("buttonsChanged"));
+                        return this;
+                    }
+                }
+                b = new AlertButtonDescriptor(label, flag);
+                b.styleName = styleName ? styleName : this;
+                _customButtons.push(b);
+                dispatchEvent(new Event("buttonsChanged"));
+                return this;
+            }
+
+            private function buttonClickedHandler(event:IndexChangeEvent):void {
+                var idx:int = event.newIndex == -1 ? event.oldIndex : event.newIndex;
+                var b:AlertButtonDescriptor = allButtons.getItemAt(idx) as AlertButtonDescriptor;
+                if (!b) b = buttonList.selectedItem;
+                close(b && b.flag != AlertView.CANCEL && b.flag != AlertView.NO, b ? b.flag : undefined);
+            }
+
+            public function addFormElement(element:IVisualElement):AlertView {
+                addElement(element);
+                return this;
+            }
+
+            /**
+             * @param handler function(commit:Boolean = false, data:*, alertView:AlertView):Boolean // true = proceed with close, false = cancel close
+             */
+            public function setClosingHandler(handler:Function, callbackTarget:Object = null):AlertView {
+                this.callbackTarget = callbackTarget;
+                closingHandler = handler;
+                return this;
+            }
+
+            protected function get viewScale():Number {
+                return FlexGlobals.topLevelApplication.dpiBaseScale;
+            }
+
+
+            override protected function stage_keyDownHandler(event:KeyboardEvent):void {
+                if (!event.isDefaultPrevented()) {
+                    var flag:* = null;
+                    if (event.keyCode == Keyboard.BACK || event.keyCode == Keyboard.ESCAPE) {
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                        if (buttonFlags & AlertView.CANCEL) flag = AlertView.CANCEL;
+                        else if (buttonFlags & AlertView.NO) flag = AlertView.NO;
+                        close(false, flag);
+                    }
+                    else if (event.keyCode == Keyboard.ENTER) {
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                        if (buttonFlags & AlertView.OK) flag = AlertView.OK;
+                        else if (buttonFlags & AlertView.YES) flag = AlertView.YES;
+                        close(flag != null, flag);
+                    }
+                }
+            }
+
+        ]]>
+    </fx:Script>
+    <modals:controlBarContent>
+        <s:ButtonBar width="100%" height="100%" dataProvider="{allButtons}" id="buttonList"
+                     labelField="label" change="buttonClickedHandler(event)">
+            <s:layout>
+                <layouts:DistributedLayout gap="{viewScale * 10}"  />
+            </s:layout>
+        </s:ButtonBar>
+    </modals:controlBarContent>
+    <modals:layout>
+        <s:VerticalLayout gap="{10 * viewScale}" id="viewLayout" horizontalAlign="justify"
+                          paddingBottom="{10 * viewScale}" paddingLeft="{10 * viewScale}" paddingRight="{10 * viewScale}" paddingTop="{10 * viewScale}" />
+    </modals:layout>
+    <s:Label text="{message}" id="messageDisplay" minHeight="0" visible="{!!message}" includeInLayout="{!!message}" />
+
+</modals:ModalContainer>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SplashScreenImage xmlns:fx="http://ns.adobe.com/mxml/2009" 
+                     xmlns:s="library://ns.adobe.com/flex/spark">
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+    </fx:Declarations>
+    
+    <!-- Default splashscreen image. -->
+    <s:SplashScreenImageSource 
+        source="@Embed('/assets/splashLandscapePhone.png')"
+        aspectRatio="landscape" />
+    <s:SplashScreenImageSource 
+        source="@Embed('/assets/splashPortraitPhone.png')"
+        aspectRatio="portrait" />
+    
+    <!-- Tablets -->
+    <s:SplashScreenImageSource 
+        source="@Embed('/assets/splashLandscapeTablet.png')"
+        aspectRatio="landscape" minResolution="1024" />
+    <s:SplashScreenImageSource 
+        source="@Embed('/assets/splashPortraitTablet.png')"
+        aspectRatio="portrait" minResolution="1024" />
+    
+</s:SplashScreenImage>

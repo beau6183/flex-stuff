@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SparkSkin xmlns:fx="http://ns.adobe.com/mxml/2009" 
+                       xmlns:s="library://ns.adobe.com/flex/spark"
+                       focusEnabled="false">
+    <fx:Metadata>
+        [HostComponent("com.beauscott.mobile.controls.modals.AccessoryViewModal")]
+    </fx:Metadata>
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+    </fx:Declarations>
+    <fx:Script>
+        <![CDATA[
+            import mx.core.DPIClassification;
+            import mx.core.FlexGlobals;
+            
+            import spark.effects.easing.Power;
+            
+            /**
+             *  @copy spark.skins.mobile.supportClasses.MobileSkin#applicationDPI
+             */
+            public function get applicationDPI():int
+            {
+                return FlexGlobals.topLevelApplication.applicationDPI;
+            }
+            
+//            /**
+//             *  @private
+//             */
+//            override protected function measure():void
+//            {
+//                super.measure();
+//                
+//                // not actually used in normal situations, but 
+//                // is here to prevent bug 28950 if ViewMenu is misused
+//                measuredHeight = 200;
+//            }
+            
+            /**
+             *  @private
+             */
+            override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+            {
+                super.updateDisplayList(unscaledWidth, unscaledHeight);
+                
+                var strokeWeight:Number = (applicationDPI == DPIClassification.DPI_320) ? 2 : 1;
+                var separatorWeight:Number = 1;
+                
+                if (applicationDPI == DPIClassification.DPI_320)
+                    separatorWeight = 4;
+                else if (applicationDPI == DPIClassification.DPI_240)
+                    separatorWeight = 2;          
+                
+                dividerStroke.weight = strokeWeight;
+                background.y = strokeWeight;
+//                contentGroup.top = strokeWeight + separatorWeight;
+//                contentGroup.bottom = separatorWeight;
+            }
+            
+        ]]>
+    </fx:Script>
+    
+    
+    <s:states>
+        <s:State name="normal"                          stateGroups="openedGroup"/>
+        <s:State name="closed"                          stateGroups="closedGroup"/>
+        <s:State name="disabled"                        stateGroups="openedGroup"/>
+        <s:State name="normalAndLandscape"              stateGroups="openedGroup, landscapeGroup"/>
+        <s:State name="closedAndLandscape"              stateGroups="closedGroup, landscapeGroup"/>
+        <s:State name="disabledAndLandscape"            stateGroups="openedGroup, landscapeGroup" />
+    </s:states>
+    
+    <s:transitions>
+        <s:Transition fromState="closed" toState="normal" autoReverse="true">
+            <s:Parallel>
+                <s:Fade target="{chromeGroup}" duration="150" easer="{new Power(0.5, 3)}" /> 
+                <s:Move target="{chromeGroup}" duration="150" disableLayout="true"  easer="{new Power(0, 5)}"/>
+            </s:Parallel>
+        </s:Transition>
+        
+        <s:Transition fromState="closedAndLandscape" toState="normalAndLandscape" autoReverse="true">
+            <s:Parallel>
+                <s:Fade target="{chromeGroup}" duration="150" easer="{new Power(0.5, 3)}" /> 
+                <s:Move target="{chromeGroup}" duration="150" disableLayout="true"  easer="{new Power(0, 5)}"/>
+            </s:Parallel>
+        </s:Transition>
+        
+        <s:Transition fromState="normal" toState="closed" autoReverse="true">
+            <s:Parallel>
+                <s:Fade target="{chromeGroup}" duration="100"/> 
+                <s:Move target="{chromeGroup}" duration="100" disableLayout="true"/>
+            </s:Parallel>
+        </s:Transition>
+        
+        <s:Transition fromState="normalAndLandscape" toState="closedAndLandscape" autoReverse="true">
+            <s:Parallel>
+                <s:Fade target="{chromeGroup}" duration="100"/> 
+                <s:Move target="{chromeGroup}" duration="100" disableLayout="true"/>
+            </s:Parallel>
+        </s:Transition>
+    </s:transitions>
+    
+    <!-- The ViewMenu and its skin are sized to the application.
+    The menu chrome is a separate group that is anchored to the bottom of the skin. -->
+    
+    <s:VGroup id="chromeGroup"
+             left="0"
+             right="0"
+             top.closedGroup="{hostComponent.height - chromeGroup.height / 2}"
+             bottom.openedGroup="0"
+             gap="0"
+             paddingTop="0" paddingLeft="0" paddingRight="0" paddingBottom="0"
+             horizontalAlign="justify"
+             visible.closedGroup="false">
+        
+        <!-- Divider line -->
+        <s:Rect x="0" y="0" width="{chromeGroup.width}" height="{chromeGroup.height}" includeInLayout="false">
+            <s:stroke>
+                <s:SolidColorStroke id="dividerStroke" weight="1" color="#000000" alpha=".9"/>   
+            </s:stroke>
+        </s:Rect> 
+        
+        <!-- Background -->
+        <s:Rect x="0" y="1" width="{chromeGroup.width}" height="{chromeGroup.height - 1}" includeInLayout="false" id="background">
+            <s:fill> 
+                <s:SolidColor color="#000000" alpha="0.9"/>
+            </s:fill>
+        </s:Rect>
+        
+        
+        <!--
+        Note: setting the minimum size to 0 here so that changes to the host component's
+        size will not be thwarted by this skin part's minimum size.   This is a compromise,
+        more about it here: http://bugs.adobe.com/jira/browse/SDK-21143
+        -->
+        <s:ActionBar id="actionBar" title="{hostComponent.title}">
+            <s:navigationContent>
+                <s:Button label="{hostComponent.cancelButtonLabel}" id="cancelButton" focusEnabled="false" 
+                          visible="{hostComponent.cancelButtonVisible}"
+                          includeInLayout="{hostComponent.cancelButtonVisible}" />
+            </s:navigationContent>
+            <s:actionContent>
+                <s:Button label="{hostComponent.actionButtonLabel}" id="actionButton" focusEnabled="false"
+                          visible="{hostComponent.actionButtonVisible}"
+                          includeInLayout="{hostComponent.actionButtonVisible}"/>
+            </s:actionContent>
+        </s:ActionBar>
+        <s:Group id="contentGroup">
+            <s:layout>
+                <s:VerticalLayout horizontalAlign="contentJustify" />
+            </s:layout>
+        </s:Group>
+    </s:VGroup>
+</s:SparkSkin>

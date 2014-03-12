@@ -1,0 +1,348 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace controls "com.beauscott.mobile.controls.*";
+@namespace modals "com.beauscott.mobile.controls.modals.*";
+@namespace skins "com.beauscott.mobile.skins.*";
+@namespace assets "com.beauscott.mobile.assets.*";
+@namespace spark "com.beauscott.mobile.spark.components.*";
+
+
+spark|ViewNavigatorApplication {
+    backgroundColor: #FFFFFF;
+    skinClass: ClassReference("com.beauscott.mobile.skins.ViewNavigatorApplicationSkin");
+}
+
+/*
+s|Button {
+    skinClass: ClassReference("com.beauscott.mobile.skins.ButtonSkin");
+}
+*/
+
+s|Button.disclosure, s|Button#disclosureButton {
+    skinClass: ClassReference("spark.skins.mobile.TransparentActionButtonSkin");
+    icon: Embed('assets/disclose.png');
+    backgroundAlpha: 0.0;
+    borderAlpha: 0.0;
+}
+
+/* 
+------------------------------------------------------
+- ab|MobileUI component base
+------------------------------------------------------
+*/
+
+controls|ExtendedList {
+    alternatingItemAlphas: 0.0, 0.2;
+}
+
+/* ModalContainer */
+modals|ModalContainer {
+    skinClass: ClassReference("com.beauscott.mobile.skins.ModalContainerSkin");
+    marginTop: 75;
+}
+
+@media (application-dpi: 240) {
+    modals|ModalContainer {
+        marginTop: 110
+    }
+}
+
+@media (application-dpi: 320) {
+    modals|ModalContainer {
+        marginTop: 150
+    }
+}
+
+skins|ModalContainerSkin s|Panel {
+    skinClass: ClassReference("com.beauscott.mobile.skins.IOSPanelSkin");
+    chromeColor: #000033;
+    backgroundColor: #000033;
+    contentBackgroundColor: #000033;
+    contentBackgroundAlpha: 1.0;
+    color: #FFFFFF;
+}
+
+skins|ModalContainerSkin s|Panel s|TextBase {
+    color: #FFFFFF;
+}
+
+skins|ModalContainerSkin s|Panel s|SkinnableTextBase {
+    contentBackgroundColor: #FFFFFF;
+    contentBackgroundAlpha: 1.0;
+    color: #000000;
+}
+
+/* IOSPanelSkin */
+skins|IOSPanelSkin {
+    backgroundAlphas: 0.85, 0.7;
+    highlightBrightness: 70;
+    highlightRotation: 180;
+    backgroundColor: #000033;
+    borderColor: #FFFFFF;
+    borderVisible: true;
+}
+
+skins|IOSPanelSkin s|Group#titleGroup {
+    color: white;
+    textShadowAlpha: 1.0;
+    fontSize: 14;
+    textAlign: center;
+}
+
+@media (application-dpi: 240) {
+    skins|IOSPanelSkin s|Group#titleGroup {
+        fontSize: 21;
+    }
+}
+
+@media (application-dpi: 320) {
+    skins|IOSPanelSkin s|Group#titleGroup {
+        fontSize: 28;
+    }
+}
+
+/* Currency Input */
+controls|CurrencyInput {
+    skinClass: ClassReference("com.beauscott.mobile.skins.CurrencyInputSkin");
+    symbolAlign: right;
+}
+
+/* ActionSheet & ActionSheetViewMenu */
+controls|ActionSheet,
+controls|ActionSheetViewMenu {
+    chromeColor: #0C0C0C;
+    color: #FFFFFF;
+    contentBackgroundAlpha:1.0;
+    contentBackgroundAppearance:flat;
+    contentBackgroundColor:#EFEFEF;
+    backgroundColor:#0C0C0C;
+    backgroundAlpha:1.0;
+    skinClass:ClassReference("com.beauscott.mobile.skins.ActionSheetSkin");
+}
+
+skins|ActionSheetSkin s|Label#titleDisplay {
+    fontSize: 14;
+}
+
+@media (application-dpi: 240) {
+    skins|ActionSheetSkin s|Label#titleDisplay {
+        fontSize: 21;
+    }
+}
+
+@media (application-dpi: 320) {
+    skins|ActionSheetSkin s|Label#titleDisplay {
+        fontSize: 28;
+    }
+}
+
+controls|ActionSheet s|Button,
+controls|ActionSheetViewMenu s|Button,
+controls|ActionSheetViewMenu s|ViewMenuItem{
+    chromeColor: #EFEFEF;
+    color: #000000;
+    textShadowAlpha: 0.2;
+    textShadowColor: #000000;
+    fontWeight: bold;
+    skinClass: ClassReference("spark.skins.mobile.ButtonBarMiddleButtonSkin");
+}
+
+controls|ActionSheet #destructiveButton,
+controls|ActionSheetViewMenu s|Button.destructiveButton,
+controls|ActionSheetViewMenu s|ViewMenuItem.destructiveButton{
+    chromeColor: #FF0000;
+    color: #FFFFFF;
+    textShadowAlpha: 0.2;
+    textShadowColor: #000000;
+}
+
+controls|ActionSheet #cancelButton,
+controls|ActionSheetViewMenu s|Button.cancelButton,
+controls|ActionSheetViewMenu s|ViewMenuItem.cancelButton{
+    chromeColor: #333333;
+    color: #FFFFFF;
+    textShadowAlpha: 0.2;
+    textShadowColor: #000000;
+}
+
+/* SignatureCaptureComponent */
+controls|SignatureCaptureComponent {
+    backgroundAlpha: 1.0;
+    backgroundColor: #FFFFFF;
+    lineAlpha: 1.0;
+    lineColor: #000000;
+    lineThickness: 2;
+}
+
+/*
+---------------------------------
+ Form controls
+---------------------------------
+*/
+
+/*
+components2|ScalingLabel {
+skinClass: ClassReference("com.beauscott.spark.components.ScalingLabelSkin")
+}
+*/
+
+controls|FormDataGroup {
+    contentBackgroundColor: white;
+    contentBackgroundAlpha: 1.0;
+    borderVisible: false;
+    borderColor: #242424;
+    textAlign: right;
+    borderAlpha: 1.0;
+}
+
+controls|FormList {
+    skinClass:ClassReference("com.beauscott.mobile.skins.FormListSkin");
+    borderVisible: false;
+    borderColor: #0C0C0C;
+    textAlign: right;
+    borderAlpha: 1.0;
+}
+
+controls|FormListItemRenderer {
+    labelColor: black;
+    headingColor: #888888;
+    color: #385488;
+    errorColor: red;
+    requiredSymbol: "*";
+    drawFirstBorder: false;
+    drawLastBorder: false;
+    groupTopCornerRadius: 10;
+    groupBottomCornerRadius: 10;
+    borderColor: #0C0C0C;
+}
+
+controls|FormListItemRenderer s|SkinnableTextBase {
+    contentBackgroundAlpha: 0;
+    borderVisible: false;
+    paddingBottom: 0;
+    paddingLeft: 0;
+    paddingRight: 0;
+    paddingTop: 0;
+    color: #385488;
+    errorColor: red;
+    showErrorSkin: true;
+    focusAlpha: 1;
+}
+
+controls|FormListItemRenderer s|ToggleSwitch {
+    chromeColor: #FFFFFF;
+    color: #FFFFFF;
+    paddingBottom: 0;
+    paddingLeft: 0;
+    paddingRight: 0;
+    paddingTop: 0;
+    borderVisible: false;
+}
+
+
+/*
+-------------------------------
+List Item Renderers
+-------------------------------
+*/
+controls|ExtendedItemRenderer .heading {
+    fontSize: 16;
+}
+
+controls|ExtendedItemRenderer .subHeading {
+    fontSize: 12;
+}
+
+@media (application-dpi: 240) {
+    controls|ExtendedItemRenderer .heading {
+        fontSize: 24;
+    }
+    
+    controls|ExtendedItemRenderer .subHeading {
+        fontSize: 18;
+    }
+}
+
+@media (application-dpi: 320) {
+    controls|ExtendedItemRenderer .heading {
+        fontSize: 32;
+    }
+    
+    controls|ExtendedItemRenderer .subHeading {
+        fontSize: 24;
+    }
+}
+
+/*
+-------------------------------
+ Modals
+-------------------------------
+*/
+
+/* AccessoryViewModal */
+modals|AccessoryViewModal {
+    skinClass: ClassReference("com.beauscott.mobile.skins.AccessoryViewModalSkin");
+}
+
+modals|AccessoryViewModal s|Button#cancelButton {
+    skinClass: ClassReference("spark.skins.mobile.BeveledActionButtonSkin");
+    chromeColor: #990000;
+    color: white
+}
+
+modals|AccessoryViewModal s|DateSpinner {
+    skinClass: ClassReference("com.beauscott.mobile.skins.AccDateSpinnerSkin");
+}
+
+/* AlertView */
+modals|AlertView {
+    borderVisible: false;
+    dropShadowVisible: true;
+}
+
+modals|AlertView #controlBarGroup s|ButtonBar {
+    skinClass: ClassReference("com.beauscott.mobile.skins.AlertViewButtonBarSkin");
+    chromeColor: #4D4D80;
+    dropShadowVisible: true;
+}
+
+modals|AlertView skins|AlertViewButtonBarSkin {
+    firstButtonSkin: ClassReference("com.beauscott.mobile.skins.ButtonSkin");
+    lastButtonSkin: ClassReference("com.beauscott.mobile.skins.ButtonSkin");
+    middleButtonSkin: ClassReference("com.beauscott.mobile.skins.ButtonSkin");
+}
+
+modals|AlertView skins|AlertViewButtonBarSkin skins|ButtonSkin {
+    chromeAlphas: 0.9, 0.9;
+    chromeBrightness: 75;
+    highlightRotation: 180;
+    borderVisible: true;
+    dropShadowVisible: true;
+}
+
+modals|BusyPopup {
+    modalTransparency: 0.0;
+    modalTransparencyColor: #000000;
+}
+
+/*
+-------------------------------
+ Assets
+-------------------------------
+*/
+assets|ConstrainedbeauscottLogo {
+    horizontalAlign: center;
+    verticalAlign: middle;
+}
+
+/*
+-------------------------------
+ Misc Skins
+-------------------------------
+*/
+
+skins|ButtonSkin {
+    chromeBrightness: 35;
+    highlightRotation: 135;
+    textShadowAlpha: 0.0;
+}

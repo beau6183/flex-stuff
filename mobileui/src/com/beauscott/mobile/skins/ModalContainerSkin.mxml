@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+
+    ADOBE SYSTEMS INCORPORATED
+    Copyright 2008 Adobe Systems Incorporated
+    All Rights Reserved.
+    
+    NOTICE: Adobe permits you to use, modify, and distribute this file
+    in accordance with the terms of the license agreement accompanying it.
+
+-->
+
+<!--- The default skin class for a Spark SkinnablePopUpContainer container.  
+
+    @see spark.components.SkinnablePopUpContainer
+    
+    @langversion 3.0
+    @playerversion Flash 10
+    @playerversion AIR 2.5
+    @productversion Flex 4.5
+-->
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" 
+        xmlns:fb="http://ns.adobe.com/flashbuilder/2009">
+    <fx:Metadata>
+        [HostComponent("com.beauscott.mobile.controls.modals.ModalContainer")]
+    </fx:Metadata>
+    <fx:Declarations>
+        
+    </fx:Declarations>
+    <fx:Script fb:purpose="styling">
+        <![CDATA[
+            import mx.core.FlexGlobals;
+            
+            import spark.effects.easing.Power;
+            
+            protected function get viewScale():Number {
+                return FlexGlobals.topLevelApplication.dpiBaseScale;
+            }
+            
+            override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number) : void
+            {
+                chrome.title = this.hostComponent.title;
+                super.updateDisplayList(unscaledWidth, unscaledHeight);
+            }
+            
+            override public function set currentState(value:String):void {
+                super.currentState = value;
+//                trace("State changed:", value);
+            }
+        ]]>        
+    </fx:Script>
+    
+    <s:states>
+        <s:State name="closed"/>
+        <s:State name="normal"/>
+        <s:State name="disabled"/>
+    </s:states>
+    
+    <!-- Transitions for open and close -->
+    <s:transitions>
+        <s:Transition fromState="closed" toState="normal" autoReverse="false">
+            <s:Move yFrom="{-height}" yTo="0" target="{this}" duration="200" easer="{new Power(0, 5)}" />
+        </s:Transition>
+        <s:Transition fromState="normal" toState="closed" autoReverse="false">
+            <s:Move yTo="{-height}" yFrom="0" target="{this}" duration="200" easer="{new Power(0, 5)}"/>
+        </s:Transition>
+    </s:transitions>
+    
+    <!--- Defines the background and content group used by this skin. -->
+    <s:Panel id="chrome" left="0" right="0" top="0" bottom="0" controlBarVisible="{controlBar.visible}">
+        <s:controlBarContent>
+            <s:HGroup id="controlBar" left="{5 * viewScale}" right="{5 * viewScale}" top="{5 * viewScale}" bottom="{5 * viewScale}" />
+        </s:controlBarContent>
+        <s:controlBarLayout>
+            <s:BasicLayout />
+        </s:controlBarLayout>
+        <s:filters>
+            <s:DropShadowFilter angle="90" alpha="0.66" blurX="{15 * viewScale}" blurY="{15 * viewScale}" distance="{15 * viewScale}"  />
+        </s:filters>
+        <s:Scroller left="0" right="0" top="0" bottom="0">
+            <s:Group id="contentGroup" left="{10 * viewScale}" right="{10 * viewScale}" top="{10 * viewScale}" bottom="{10 * viewScale}" minWidth="{10 * viewScale}" minHeight="{10 * viewScale}">
+                <s:layout>
+                    <s:BasicLayout/>
+                </s:layout>
+            </s:Group>    
+        </s:Scroller>
+    </s:Panel>
+</s:Skin>
